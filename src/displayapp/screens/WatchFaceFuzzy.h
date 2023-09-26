@@ -10,6 +10,8 @@
 #include "displayapp/widgets/StatusIcons.h"
 #include "utility/DirtyValue.h"
 
+extern lv_font_t vulf_mono_italic;
+
 namespace Pinetime {
   namespace Controllers {
     class Battery;
