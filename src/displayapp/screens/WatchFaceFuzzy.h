@@ -12,7 +12,6 @@
 
 namespace Pinetime {
   namespace Controllers {
-    class Settings;
     class Battery;
     class Ble;
     class NotificationManager;
@@ -29,7 +28,6 @@ namespace Pinetime {
                        const Controllers::Battery& batteryController,
                        const Controllers::Ble& bleController,
                        Controllers::NotificationManager& notificationManager,
-                       Controllers::Settings& settingsController,
                        Controllers::HeartRateController& heartRateController,
                        Controllers::MotionController& motionController);
         ~WatchFaceFuzzy() override;
@@ -39,6 +37,11 @@ namespace Pinetime {
       private:
         uint8_t displayedHour = -1;
         uint8_t displayedMinute = -1;
+
+        static char const *nums[];
+        static char const *mods[];
+
+        char timeStr[64];
 
         Utility::DirtyValue<uint8_t> batteryPercentRemaining {};
         Utility::DirtyValue<bool> powerPresent {};
@@ -53,7 +56,6 @@ namespace Pinetime {
         Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, days>> currentDate;
 
         lv_obj_t* label_time;
-        lv_obj_t* label_time_ampm;
         lv_obj_t* label_date;
         lv_obj_t* heartbeatIcon;
         lv_obj_t* heartbeatValue;
@@ -63,12 +65,13 @@ namespace Pinetime {
 
         Controllers::DateTime& dateTimeController;
         Controllers::NotificationManager& notificationManager;
-        Controllers::Settings& settingsController;
         Controllers::HeartRateController& heartRateController;
         Controllers::MotionController& motionController;
 
         lv_task_t* taskRefresh;
         Widgets::StatusIcons statusIcons;
+
+        void printTimeWords(int h, int m);
       };
     }
   }

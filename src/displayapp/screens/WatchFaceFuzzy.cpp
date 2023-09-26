@@ -2,6 +2,9 @@
 
 #include <lvgl/lvgl.h>
 #include <cstdio>
+#include <lvgl/src/lv_core/lv_obj_style_dec.h>
+#include <lvgl/src/lv_font/lv_font.h>
+#include <lvgl/src/lv_misc/lv_area.h>
 #include "displayapp/screens/NotificationIcon.h"
 #include "displayapp/screens/Symbols.h"
 #include "components/battery/BatteryController.h"
@@ -9,7 +12,6 @@
 #include "components/ble/NotificationManager.h"
 #include "components/heartrate/HeartRateController.h"
 #include "components/motion/MotionController.h"
-#include "components/settings/Settings.h"
 
 using namespace Pinetime::Applications::Screens;
 
@@ -17,13 +19,11 @@ WatchFaceFuzzy::WatchFaceFuzzy(Controllers::DateTime& dateTimeController,
                                const Controllers::Battery& batteryController,
                                    const Controllers::Ble& bleController,
                                    Controllers::NotificationManager& notificationManager,
-                                   Controllers::Settings& settingsController,
                                    Controllers::HeartRateController& heartRateController,
                                    Controllers::MotionController& motionController)
   : currentDateTime {{}},
     dateTimeController {dateTimeController},
     notificationManager {notificationManager},
-    settingsController {settingsController},
     heartRateController {heartRateController},
     motionController {motionController},
     statusIcons(batteryController, bleController) {
@@ -35,18 +35,14 @@ WatchFaceFuzzy::WatchFaceFuzzy(Controllers::DateTime& dateTimeController,
   lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(false));
   lv_obj_align(notificationIcon, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
-  label_date = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_align(label_date, lv_scr_act(), LV_ALIGN_CENTER, 0, 60);
-  lv_obj_set_style_local_text_color(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x999999));
-
   label_time = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
+  lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_bold_20);
+  lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -20);
+  lv_label_set_recolor(label_time, true);
 
-  lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
-
-  label_time_ampm = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_text_static(label_time_ampm, "");
-  lv_obj_align(label_time_ampm, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, -30, -55);
+  label_date = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_text_color(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x999999));
+  lv_obj_align(label_date, label_time, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
 
   heartbeatIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(heartbeatIcon, Symbols::heartBeat);
@@ -91,43 +87,18 @@ void WatchFaceFuzzy::Refresh() {
     uint8_t hour = dateTimeController.Hours();
     uint8_t minute = dateTimeController.Minutes();
 
-    if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
-      char ampmChar[3] = "AM";
-      if (hour == 0) {
-        hour = 12;
-      } else if (hour == 12) {
-        ampmChar[0] = 'P';
-      } else if (hour > 12) {
-        hour = hour - 12;
-        ampmChar[0] = 'P';
-      }
-      lv_label_set_text(label_time_ampm, ampmChar);
-      lv_label_set_text_fmt(label_time, "%2d:%02d", hour, minute);
-      lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
-    } else {
-      lv_label_set_text_fmt(label_time, "%02d:%02d", hour, minute);
-      lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
-    }
+    printTimeWords(static_cast<int>(hour), static_cast<int>(minute));
 
     currentDate = std::chrono::time_point_cast<days>(currentDateTime.Get());
     if (currentDate.IsUpdated()) {
       uint16_t year = dateTimeController.Year();
       uint8_t day = dateTimeController.Day();
-      if (settingsController.GetClockType() == Controllers::Settings::ClockType::H24) {
-        lv_label_set_text_fmt(label_date,
-                              "%s %d %s %d",
-                              dateTimeController.DayOfWeekShortToString(),
-                              day,
-                              dateTimeController.MonthShortToString(),
-                              year);
-      } else {
-        lv_label_set_text_fmt(label_date,
-                              "%s %s %d %d",
-                              dateTimeController.DayOfWeekShortToString(),
-                              dateTimeController.MonthShortToString(),
-                              day,
-                              year);
-      }
+      lv_label_set_text_fmt(label_date,
+                            "%s %d %s %d",
+                            dateTimeController.DayOfWeekShortToString(),
+                            day,
+                            dateTimeController.MonthShortToString(),
+                            year);
       lv_obj_realign(label_date);
     }
   }
@@ -153,4 +124,32 @@ void WatchFaceFuzzy::Refresh() {
     lv_obj_realign(stepValue);
     lv_obj_realign(stepIcon);
   }
+}
+
+char const* WatchFaceFuzzy::mods[] = {"", "five", "ten", "quarter", "twenty", "twenty five", "half"};
+char const* WatchFaceFuzzy::nums[] = {"", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"};
+
+void WatchFaceFuzzy::printTimeWords(int h, int m) {
+  const char* mod;
+  if (m  <= 30) {
+    mod = mods[m / 5];
+  } else {
+    mod = mods[(60-m) / 5];
+  }
+  h  = (h % 12);
+
+  if (m == 0 || m < 3 || m > 57) {
+    sprintf(timeStr, "#ffffff %s#\n#808080 o' clock#", nums[h]);
+
+  }
+
+  else if (m <= 30) {
+    sprintf(timeStr, "#ffffff %s#\n#808080 past# #FFFFFF %s#", mod, nums[h]);
+  }
+
+  else if (m > 30) {
+    sprintf(timeStr, "#ffffff %s#\n#808080 to# #FFFFFF %s#", mod, nums[(h % 12) + 1]);
+  }
+
+  lv_label_set_text(label_time, timeStr);
 }

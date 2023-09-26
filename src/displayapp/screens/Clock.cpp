@@ -99,7 +99,6 @@ std::unique_ptr<Screen> Clock::WatchFaceFuzzy() {
                                                    batteryController,
                                                    bleController,
                                                    notificationManager,
-                                                   settingsController,
                                                    heartRateController,
                                                    motionController);
 }
