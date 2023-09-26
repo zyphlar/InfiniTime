@@ -50,8 +50,6 @@ namespace Pinetime {
           {Symbols::heartBeat, Apps::HeartRate, true},
           {Symbols::music, Apps::Music, true},
 
-          {Symbols::paintbrush, Apps::Paint, true},
-          {Symbols::paddle, Apps::Paddle, true},
           {"2", Apps::Twos, true},
           {Symbols::drum, Apps::Metronome, true},
           {Symbols::map, Apps::Navigation, Applications::Screens::Navigation::IsAvailable(filesystem)},

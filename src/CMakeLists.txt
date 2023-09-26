@@ -375,8 +375,6 @@ list(APPEND SOURCE_FILES
         displayapp/screens/Screen.cpp
         displayapp/screens/Clock.cpp
         displayapp/screens/Tile.cpp
-        displayapp/screens/InfiniPaint.cpp
-        displayapp/screens/Paddle.cpp
         displayapp/screens/StopWatch.cpp
         displayapp/screens/BatteryIcon.cpp
         displayapp/screens/BleIcon.cpp
@@ -429,9 +427,6 @@ list(APPEND SOURCE_FILES
         ## Watch faces
         displayapp/screens/WatchFaceAnalog.cpp
         displayapp/screens/WatchFaceDigital.cpp
-        displayapp/screens/WatchFaceInfineat.cpp
-        displayapp/screens/WatchFaceTerminal.cpp
-        displayapp/screens/WatchFacePineTimeStyle.cpp
         displayapp/screens/WatchFaceCasioStyleG7710.cpp
         displayapp/screens/WatchFaceFuzzy.cpp
 
@@ -601,9 +596,7 @@ set(INCLUDE_FILES
         displayapp/screens/Screen.h
         displayapp/screens/Clock.h
         displayapp/screens/Tile.h
-        displayapp/screens/InfiniPaint.h
         displayapp/screens/StopWatch.h
-        displayapp/screens/Paddle.h
         displayapp/screens/BatteryIcon.h
         displayapp/screens/BleIcon.h
         displayapp/screens/NotificationIcon.h
