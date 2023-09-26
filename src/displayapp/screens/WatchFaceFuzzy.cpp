@@ -127,7 +127,7 @@ void WatchFaceFuzzy::Refresh() {
 }
 
 char const* WatchFaceFuzzy::mods[] = {"", "five", "ten", "quarter", "twenty", "twenty five", "half"};
-char const* WatchFaceFuzzy::nums[] = {"", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"};
+char const* WatchFaceFuzzy::nums[] = {"twelve", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"};
 
 void WatchFaceFuzzy::printTimeWords(int h, int m) {
   const char* mod;
@@ -138,16 +138,16 @@ void WatchFaceFuzzy::printTimeWords(int h, int m) {
   }
   h  = (h % 12);
 
-  if (m == 0 || m < 3 || m > 57) {
+  if (m == 0 || m < 4 || m > 56) {
     sprintf(timeStr, "#ffffff %s#\n#808080 o' clock#", nums[h]);
 
   }
 
-  else if (m <= 30) {
+  else if (m <= 32) {
     sprintf(timeStr, "#ffffff %s#\n#808080 past# #FFFFFF %s#", mod, nums[h]);
   }
 
-  else if (m > 30) {
+  else if (m > 32) {
     sprintf(timeStr, "#ffffff %s#\n#808080 to# #FFFFFF %s#", mod, nums[(h % 12) + 1]);
   }
 
