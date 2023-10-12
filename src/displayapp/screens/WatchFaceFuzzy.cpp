@@ -131,6 +131,7 @@ char const* WatchFaceFuzzy::nums[] = {"twelve", "one", "two", "three", "four", "
 
 void WatchFaceFuzzy::printTimeWords(int h, int m) {
   const char* mod;
+
   if (m  <= 30) {
     mod = mods[m / 5];
   } else {
@@ -138,9 +139,11 @@ void WatchFaceFuzzy::printTimeWords(int h, int m) {
   }
   h  = (h % 12);
 
-  if (m == 0 || m < 4 || m > 56) {
+  if (m >= 56) {
+    sprintf(timeStr, "#ffffff nearly %s#\n#808080 o' clock#", nums[(h+1) % 12]);
+  }
+  else if (m == 0 || m <= 4) {
     sprintf(timeStr, "#ffffff %s#\n#808080 o' clock#", nums[h]);
-
   }
 
   else if (m <= 32) {
