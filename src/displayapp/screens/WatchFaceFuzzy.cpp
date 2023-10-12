@@ -151,7 +151,7 @@ void WatchFaceFuzzy::printTimeWords(int h, int m) {
   }
 
   else if (m > 32) {
-    sprintf(timeStr, "#ffffff %s#\n#808080 to# #FFFFFF %s#", mod, nums[(h % 12) + 1]);
+    sprintf(timeStr, "#ffffff %s#\n#808080 to# #FFFFFF %s#", mod, nums[(h+1) % 12]);
   }
 
   lv_label_set_text(label_time, timeStr);
