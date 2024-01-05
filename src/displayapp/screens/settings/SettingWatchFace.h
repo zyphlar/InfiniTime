@@ -9,6 +9,7 @@
 #include "displayapp/screens/Screen.h"
 #include "displayapp/screens/Symbols.h"
 #include "displayapp/screens/CheckboxList.h"
+#include "displayapp/screens/WatchFaceInfineat.h"
 #include "displayapp/screens/WatchFaceCasioStyleG7710.h"
 #include "displayapp/screens/WatchFaceFuzzy.h"
 
@@ -44,7 +45,6 @@ namespace Pinetime {
           {{"Digital face", true},
            {"Analog face", true},
            {"PineTimeStyle", true},
-           {"Terminal", true},
            {"Infineat face", Applications::Screens::WatchFaceInfineat::IsAvailable(filesystem)},
            {"Casio G7710", Applications::Screens::WatchFaceCasioStyleG7710::IsAvailable(filesystem)},
            {"Fuzzy Clock", true},
