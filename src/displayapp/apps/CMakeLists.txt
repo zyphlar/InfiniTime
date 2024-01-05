@@ -1,9 +1,10 @@
 if(DEFINED ENABLE_USERAPPS)
     set(USERAPP_TYPES ${ENABLE_USERAPPS} CACHE STRING "List of user apps to build into the firmware")
 else ()
-    set(USERAPP_TYPES "Apps::Navigation, Apps::StopWatch, Apps::Alarm, Apps::Timer, Apps::Steps, Apps::HeartRate, Apps::Music, Apps::Paddle, Apps::Twos" CACHE STRING "List of user apps to build into the firmware")
-    #Apps::Paint, 
+    set(USERAPP_TYPES "Apps::Navigation, Apps::StopWatch, Apps::Alarm, Apps::Timer, Apps::Steps, Apps::HeartRate, Apps::Music, Apps::Twos" CACHE STRING "List of user apps to build into the firmware")
+    #Apps::Paint,
     #Apps::Metronome,
+    #Apps::Paddle,
 endif ()
 
 add_library(infinitime_apps INTERFACE)

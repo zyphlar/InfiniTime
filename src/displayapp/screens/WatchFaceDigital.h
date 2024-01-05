@@ -38,7 +38,6 @@ namespace Pinetime {
         void Refresh() override;
 
       private:
-        const char* timeAccent = "ffffff";
         uint8_t displayedHour = -1;
         uint8_t displayedMinute = -1;
         static const char* timeSectors[4];

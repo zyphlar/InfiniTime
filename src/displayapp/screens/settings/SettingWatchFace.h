@@ -10,7 +10,7 @@
 #include "displayapp/screens/Symbols.h"
 #include "displayapp/screens/CheckboxList.h"
 #include "displayapp/screens/WatchFaceInfineat.h"
-//#include "displayapp/screens/WatchFaceCasioStyleG7710.h"
+#include "displayapp/screens/WatchFaceCasioStyleG7710.h"
 
 namespace Pinetime {
 
