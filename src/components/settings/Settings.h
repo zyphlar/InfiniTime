@@ -9,7 +9,7 @@ namespace Pinetime {
   namespace Controllers {
     class Settings {
     public:
-      enum class ClockType : uint8_t { H24, H12 };
+      enum class ClockType : uint8_t { H24, H12, Fuzzy };
       enum class WeatherFormat : uint8_t { Metric, Imperial };
       enum class Notification : uint8_t { On, Off, Sleep };
       enum class ChimesOption : uint8_t { None, Hours, HalfHours };

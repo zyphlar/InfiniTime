@@ -18,7 +18,7 @@ namespace Pinetime {
       FlashLight,
       BatteryInfo,
       Music,
-      //Paint,
+      Paint,
       Paddle,
       Twos,
       HeartRate,
@@ -51,7 +51,6 @@ namespace Pinetime {
       Terminal,
       Infineat,
       CasioStyleG7710,
-      Fuzzy,
     };
 
     template <Apps>
@@ -76,9 +75,8 @@ namespace Pinetime {
                                                  WatchFace::Analog,
                                                  WatchFace::PineTimeStyle,
                                                  //WatchFace::Terminal,
-                                                 WatchFace::Infineat,
                                                  //WatchFace::CasioStyleG7710,
-                                                 WatchFace::Fuzzy>;
+                                                 WatchFace::Infineat>;
 
     static_assert(UserWatchFaceTypes::Count >= 1);
   }

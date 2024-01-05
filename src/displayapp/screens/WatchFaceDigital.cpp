@@ -91,7 +91,26 @@ void WatchFaceDigital::Refresh() {
     uint8_t hour = dateTimeController.Hours();
     uint8_t minute = dateTimeController.Minutes();
 
-    if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
+    /* Begin difference from WatchFaceDigital*/
+    if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+      std::string hourStr, timeStr;
+      auto sector = minute / 5 + (minute % 5 > 2);
+      if (sector == 12) {
+        hour = (hour + 1) % 12;
+        sector = 0;
+      }
+
+      timeStr = timeSectors[sector];
+      if (timeStr.find("%1") != std::string::npos) {
+        hour = (hour + 1) % 12;
+      }
+      hourStr = std::string("#") + timeAccent + " " + hourNames[hour] + "#";
+      timeStr.replace(timeStr.find("%"), 2, hourStr);
+
+      lv_label_set_text(label_time, timeStr.c_str());
+      lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
+    /* End difference from WatchFaceDigital*/
+    } else if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
       char ampmChar[3] = "AM";
       if (hour == 0) {
         hour = 12;
@@ -154,3 +173,39 @@ void WatchFaceDigital::Refresh() {
     lv_obj_realign(stepIcon);
   }
 }
+
+/* Inspired by XFCE4-panel's fuzzy clock.
+ *
+ *      https://salsa.debian.org/xfce-team/desktop/xfce4-panel/-/blob/debian/master/plugins/clock/clock-fuzzy.c
+ *
+ * Strings contain either a `%0` or a `%1`, indicating the position of
+ * the `hour` or `hour+1`, respectively.
+ */
+const char* WatchFaceDigital::timeSectors[] = {
+  "%0\no'clock",
+  "five past\n%0",
+  "ten past\n%0",
+  "quarter\npast\n%0",
+  "twenty\npast\n%0",
+  "twenty\nfive past\n%0",
+  "half past\n%0",
+  "twenty\nfive to\n%1",
+  "twenty\nto %1",
+  "quarter\nto %1",
+  "ten to\n%1",
+  "five to\n%1",
+};
+const char* WatchFaceDigital::hourNames[] = {
+  "twelve",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+};
