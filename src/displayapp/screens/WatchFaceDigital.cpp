@@ -40,7 +40,11 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
   lv_obj_set_style_local_text_color(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x999999));
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
+  if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+    lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_42);
+  } else {
+    lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
+  }
 
   lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
 
@@ -94,8 +98,11 @@ void WatchFaceDigital::Refresh() {
     /* Begin difference from WatchFaceDigital*/
     if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
       std::string hourStr, timeStr;
+      hour = hour % 12; // 12 becomes 0, 13 becomes 1
       auto sector = minute / 15 + (minute % 15 > 7);
-      if (sector == 12) {
+      // advance the hour modulo 12 and reset the minutes if we're close to the top
+      // so we get "quarter to $hour+1" instead of needing "three quarters past $hour"
+      if (sector > 3) {
         hour = (hour + 1) % 12;
         sector = 0;
       }
@@ -104,7 +111,8 @@ void WatchFaceDigital::Refresh() {
       if (timeStr.find("%1") != std::string::npos) {
         hour = (hour + 1) % 12;
       }
-      hourStr = std::string("#") + timeAccent + " " + hourNames[hour] + "#";
+      //hourStr = std::string("#") + timeAccent + " " + hourNames[hour] + "#";
+      hourStr = hourNames[hour];
       timeStr.replace(timeStr.find("%"), 2, hourStr);
 
       lv_label_set_text(label_time, timeStr.c_str());
