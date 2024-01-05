@@ -92,7 +92,7 @@ void WatchFaceFuzzy::Refresh() {
     uint8_t minute = dateTimeController.Minutes();
 
     /* Begin difference from WatchFaceDigital*/
-    std::string hoursStr, timeStr;
+    std::string hourStr, timeStr;
     auto sector = minute / 5 + (minute % 5 > 2);
     if (sector == 12) {
       hour = (hour + 1) % 12;
