@@ -94,7 +94,7 @@ void WatchFaceDigital::Refresh() {
     /* Begin difference from WatchFaceDigital*/
     if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
       std::string hourStr, timeStr;
-      auto sector = minute / 5 + (minute % 5 > 2);
+      auto sector = minute / 15 + (minute % 15 > 7);
       if (sector == 12) {
         hour = (hour + 1) % 12;
         sector = 0;
@@ -183,18 +183,10 @@ void WatchFaceDigital::Refresh() {
  */
 const char* WatchFaceDigital::timeSectors[] = {
   "%0\no'clock",
-  "five past\n%0",
-  "ten past\n%0",
   "quarter\npast\n%0",
-  "twenty\npast\n%0",
-  "twenty\nfive past\n%0",
   "half past\n%0",
-  "twenty\nfive to\n%1",
-  "twenty\nto %1",
   "quarter\nto %1",
-  "ten to\n%1",
-  "five to\n%1",
-};
+  };
 const char* WatchFaceDigital::hourNames[] = {
   "twelve",
   "one",

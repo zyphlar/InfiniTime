@@ -41,7 +41,7 @@ namespace Pinetime {
         const char* timeAccent = "ffffff";
         uint8_t displayedHour = -1;
         uint8_t displayedMinute = -1;
-        static const char* timeSectors[12];
+        static const char* timeSectors[4];
         static const char* hourNames[12];
 
         Utility::DirtyValue<uint8_t> batteryPercentRemaining {};
