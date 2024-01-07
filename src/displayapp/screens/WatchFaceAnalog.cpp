@@ -176,7 +176,7 @@ void WatchFaceAnalog::UpdateClock() {
   uint8_t minute = dateTimeController.Minutes();
   uint8_t second = dateTimeController.Seconds();
 
-  if (sMinute != minute) {
+  if (minute>99 && sMinute != minute) { // disable
     auto const angle = minute * 6;
     minute_point[0] = CoordinateRelocate(30, angle);
     minute_point[1] = CoordinateRelocate(MinuteLength, angle);
@@ -203,7 +203,8 @@ void WatchFaceAnalog::UpdateClock() {
     lv_line_set_points(hour_body_trace, hour_point_trace, 2);
   }
 
-  if (sSecond != second) {
+
+  if (second>99 && sSecond != second) { // disable
     sSecond = second;
     auto const angle = second * 6;
 
