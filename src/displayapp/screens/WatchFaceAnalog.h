@@ -76,12 +76,19 @@ namespace Pinetime {
 
         BatteryIcon batteryIcon;
 
+        int16_t minutesSunrise;
+        int16_t minutesSunset;
+        int16_t minutesDaytime;
+        int16_t minutesNighttime;
+        int16_t minutesBeforeSunset;
+
         const Controllers::DateTime& dateTimeController;
         const Controllers::Battery& batteryController;
         const Controllers::Ble& bleController;
         Controllers::NotificationManager& notificationManager;
         Controllers::Settings& settingsController;
 
+        void drawWatchFaceModeNight();
         void UpdateClock();
         void SetBatteryIcon();
 
