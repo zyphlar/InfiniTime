@@ -1,6 +1,7 @@
 #include "displayapp/screens/WatchFaceAnalog.h"
 #include <cmath>
 #include <lvgl/lvgl.h>
+// #include <nrf_log.h>
 #include "displayapp/screens/BatteryIcon.h"
 #include "displayapp/screens/BleIcon.h"
 #include "displayapp/screens/Symbols.h"
@@ -11,12 +12,15 @@
 using namespace Pinetime::Applications::Screens;
 
 namespace {
-  constexpr int16_t HourLength = 70;
+  int16_t HourLength = 70;
   constexpr int16_t MinuteLength = 90;
   constexpr int16_t SecondLength = 110;
+  constexpr int16_t SunDialVerticalOffset = 40;
 
   // sin(90) = 1 so the value of _lv_trigo_sin(90) is the scaling factor
   const auto LV_TRIG_SCALE = _lv_trigo_sin(90);
+  const lv_color_t DARK_GRAY = lv_color_make(48, 48, 48);
+  const lv_color_t DARK_ORANGE = lv_color_make(48, 26, 0);
 
   int16_t Cosine(int16_t angle) {
     return _lv_trigo_sin(angle + 90);
@@ -39,6 +43,15 @@ namespace {
                        .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
   }
 
+  int16_t CoordinateYRelocateSundial(int16_t y) {
+    return std::abs(y - SunDialVerticalOffset);
+  }
+
+  lv_point_t CoordinateRelocateSundial(int16_t radius, int16_t angle) {
+    return lv_point_t {.x = CoordinateXRelocate(radius * static_cast<int32_t>(Sine(angle)) / LV_TRIG_SCALE),
+                       .y = CoordinateYRelocateSundial(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
+  }
+
 }
 
 WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
@@ -58,41 +71,71 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
   sMinute = 99;
   sSecond = 99;
 
-  minor_scales = lv_linemeter_create(lv_scr_act(), nullptr);
-  lv_linemeter_set_scale(minor_scales, 300, 51);
-  lv_linemeter_set_angle_offset(minor_scales, 180);
-  lv_obj_set_size(minor_scales, 240, 240);
-  lv_obj_align(minor_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_local_bg_opa(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-  lv_obj_set_style_local_scale_width(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
-  lv_obj_set_style_local_scale_end_line_width(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 1);
-  lv_obj_set_style_local_scale_end_color(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GRAY);
+  minutesSunrise = 360; //sun.calcSunrise();
+  minutesSunset = 1080; //sun.calcSunset();
+  minutesDaytime = (minutesSunset - minutesSunrise);
+  minutesNighttime = (1440 - minutesDaytime);
 
-  major_scales = lv_linemeter_create(lv_scr_act(), nullptr);
-  lv_linemeter_set_scale(major_scales, 300, 11);
-  lv_linemeter_set_angle_offset(major_scales, 180);
-  lv_obj_set_size(major_scales, 240, 240);
-  lv_obj_align(major_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_local_bg_opa(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-  lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 6);
-  lv_obj_set_style_local_scale_end_line_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
-  lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  // begin sundial
+  if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+    major_scales = lv_linemeter_create(lv_scr_act(), nullptr);
+    lv_linemeter_set_scale(major_scales, 165, 11);
+    lv_linemeter_set_angle_offset(major_scales, 180);
+    lv_obj_set_size(major_scales, 240, 240);
+    lv_obj_align(major_scales, nullptr, LV_ALIGN_IN_TOP_MID, 0, -LV_HOR_RES/2+SunDialVerticalOffset);
+    lv_obj_set_style_local_bg_opa(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 40);
+    lv_obj_set_style_local_scale_end_line_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 1);
+    lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
-  large_scales = lv_linemeter_create(lv_scr_act(), nullptr);
-  lv_linemeter_set_scale(large_scales, 180, 3);
-  lv_linemeter_set_angle_offset(large_scales, 180);
-  lv_obj_set_size(large_scales, 240, 240);
-  lv_obj_align(large_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_local_bg_opa(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-  lv_obj_set_style_local_scale_width(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 20);
-  lv_obj_set_style_local_scale_end_line_width(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
-  lv_obj_set_style_local_scale_end_color(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_AQUA);
+    one = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(one, LV_LABEL_ALIGN_LEFT);
+    lv_label_set_text(one, "I");
+    lv_obj_align(one, NULL, LV_ALIGN_IN_TOP_LEFT, 20, SunDialVerticalOffset-20);
+    lv_obj_set_style_local_text_color(one, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
-  twelve = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
-  lv_label_set_text_static(twelve, "12");
-  lv_obj_set_pos(twelve, 110, 10);
-  lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_AQUA);
+    twelve = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(twelve, LV_LABEL_ALIGN_RIGHT);
+    lv_label_set_text(twelve, "XII");
+    lv_obj_align(twelve, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, SunDialVerticalOffset-20);
+    lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  } else {
+    minor_scales = lv_linemeter_create(lv_scr_act(), nullptr);
+    lv_linemeter_set_scale(minor_scales, 300, 51);
+    lv_linemeter_set_angle_offset(minor_scales, 180);
+    lv_obj_set_size(minor_scales, 240, 240);
+    lv_obj_align(minor_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_local_bg_opa(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    lv_obj_set_style_local_scale_width(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
+    lv_obj_set_style_local_scale_end_line_width(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 1);
+    lv_obj_set_style_local_scale_end_color(minor_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GRAY);
+
+    major_scales = lv_linemeter_create(lv_scr_act(), nullptr);
+    lv_linemeter_set_scale(major_scales, 300, 11);
+    lv_linemeter_set_angle_offset(major_scales, 180);
+    lv_obj_set_size(major_scales, 240, 240);
+    lv_obj_align(major_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_local_bg_opa(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 6);
+    lv_obj_set_style_local_scale_end_line_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
+    lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+
+    large_scales = lv_linemeter_create(lv_scr_act(), nullptr);
+    lv_linemeter_set_scale(large_scales, 180, 3);
+    lv_linemeter_set_angle_offset(large_scales, 180);
+    lv_obj_set_size(large_scales, 240, 240);
+    lv_obj_align(large_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_local_bg_opa(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    lv_obj_set_style_local_scale_width(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 20);
+    lv_obj_set_style_local_scale_end_line_width(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 4);
+    lv_obj_set_style_local_scale_end_color(large_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_AQUA);
+
+    twelve = lv_label_create(lv_scr_act(), nullptr);
+    lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
+    lv_label_set_text_static(twelve, "12");
+    lv_obj_set_pos(twelve, 110, 10);
+    lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_AQUA);
+  }
 
   batteryIcon.Create(lv_scr_act());
   lv_obj_align(batteryIcon.GetObject(), nullptr, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
@@ -111,7 +154,6 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
   lv_obj_align(notificationIcon, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
   // Date - Day / Week day
-
   label_date_day = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
   lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
@@ -171,7 +213,55 @@ WatchFaceAnalog::~WatchFaceAnalog() {
   lv_obj_clean(lv_scr_act());
 }
 
+
+void WatchFaceAnalog::drawWatchFaceModeNight(){
+  uint8_t hour = dateTimeController.Hours();
+  uint8_t minute = dateTimeController.Minutes();
+
+  minutesBeforeSunset = minutesSunset - (hour * 60 + minute); // i.e.zero degrees
+  HourLength = 90; // sundial hand length
+
+  int16_t hourAngle;
+
+  if(minutesBeforeSunset > 0 && minutesBeforeSunset < minutesDaytime) { // day (after sunrise)
+    hourAngle = 180.0 * minutesBeforeSunset / minutesDaytime + 90;
+  } else { // night (before sunrise or after sunset)
+    lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, DARK_GRAY);
+    lv_style_set_line_color(&hour_line_style_trace, LV_STATE_DEFAULT, DARK_GRAY);
+    lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
+    lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_ORANGE);
+    lv_obj_set_style_local_text_color(one, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
+    lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
+
+    if(minutesBeforeSunset > minutesDaytime) { // before sunrise
+      hourAngle = 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime + 90;
+    } else { // after sunset
+      hourAngle = 180 + 180.0 * minutesBeforeSunset / minutesNighttime + 90;
+    }
+  }
+  //NRF_LOG_INFO("angle : %d, sun %d day %d len %d", hourAngle, minutesBeforeSunset, minutesDaytime, HourLength);
+
+  if (sHour != hour || sMinute != minute) {
+    sHour = hour;
+    sMinute = minute;
+
+    hour_point_trace[0] = CoordinateRelocateSundial(HourLength*.75, hourAngle);
+    hour_point_trace[1] = CoordinateRelocateSundial(HourLength, hourAngle);
+
+    hour_point[0] = CoordinateRelocateSundial(0, hourAngle);
+    hour_point[1] = CoordinateRelocateSundial(HourLength*.75, hourAngle);
+
+    lv_line_set_points(hour_body, hour_point, 2);
+    lv_line_set_points(hour_body_trace, hour_point_trace, 2);
+  }
+}
+
 void WatchFaceAnalog::UpdateClock() {
+  if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+    drawWatchFaceModeNight();
+    return;
+  }
+
   uint8_t hour = dateTimeController.Hours();
   uint8_t minute = dateTimeController.Minutes();
   uint8_t second = dateTimeController.Seconds();
@@ -259,7 +349,18 @@ void WatchFaceAnalog::Refresh() {
 
     currentDate = std::chrono::time_point_cast<days>(currentDateTime.Get());
     if (currentDate.IsUpdated()) {
-      lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
+      if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+        char const* MonthsString[] = {"--", "IANUARIUS","FEBRUARIUS","MARTIUS","APRILIS","MARTIUSIUNIUS","QUINTILIS","SEXTILIS","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"};
+        char const* DaysString[] = {"--", "LUNAE", "MARTIS", "MERCURII", "IOVIS", "VENERIS", "SATURNI", "SOLIS"};
+        char const* RomanNumeralsString[] = {"--", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"};
+        lv_label_set_text_fmt(label_date_day, "%s\n%s %s",
+          DaysString[static_cast<uint8_t>(dateTimeController.DayOfWeek())],
+          RomanNumeralsString[static_cast<uint8_t>(dateTimeController.Day())],
+          MonthsString[static_cast<uint8_t>(dateTimeController.Month())]);
+        lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
+      } else {
+        lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
+      }
     }
   }
 }
