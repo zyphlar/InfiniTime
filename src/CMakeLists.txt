@@ -174,6 +174,11 @@ set(LITTLEFS_SRC
         libs/littlefs/lfs.c
         )
 
+set(SUNRISE_SRC
+        libs/sunset/src/sunset.h
+        libs/sunset/src/sunset.cpp
+        )
+
 set(LVGL_SRC
         libs/lv_conf.h
         libs/lvgl/lvgl.h
@@ -897,13 +902,25 @@ target_compile_options(littlefs PRIVATE
         $<$<COMPILE_LANGUAGE:ASM>: ${ASM_FLAGS}>
         )
 
+# SUNRISE_SRC
+add_library(sunrise STATIC ${SUNRISE_SRC})
+target_include_directories(sunrise SYSTEM PUBLIC . ../)
+target_include_directories(sunrise SYSTEM PUBLIC ${INCLUDES_FROM_LIBS})
+target_compile_options(sunrise PRIVATE
+        ${COMMON_FLAGS}
+        $<$<CONFIG:DEBUG>: ${DEBUG_FLAGS}>
+        $<$<CONFIG:RELEASE>: ${RELEASE_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>: ${CXX_FLAGS}>
+        $<$<COMPILE_LANGUAGE:ASM>: ${ASM_FLAGS}>
+        )
+
 # Build autonomous binary (without support for bootloader)
 set(EXECUTABLE_NAME "pinetime-app")
 set(EXECUTABLE_FILE_NAME ${EXECUTABLE_NAME}-${pinetime_VERSION_MAJOR}.${pinetime_VERSION_MINOR}.${pinetime_VERSION_PATCH})
 set(NRF5_LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/gcc_nrf52.ld")
 add_executable(${EXECUTABLE_NAME} ${SOURCE_FILES})
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME ${EXECUTABLE_FILE_NAME})
-target_link_libraries(${EXECUTABLE_NAME} nimble nrf-sdk lvgl littlefs infinitime_fonts infinitime_apps)
+target_link_libraries(${EXECUTABLE_NAME} nimble nrf-sdk lvgl littlefs sunrise infinitime_fonts infinitime_apps)
 target_compile_options(${EXECUTABLE_NAME} PUBLIC
         ${COMMON_FLAGS}
         ${WARNING_FLAGS}
@@ -937,7 +954,7 @@ set(IMAGE_MCUBOOT_FILE_NAME_BIN ${EXECUTABLE_MCUBOOT_NAME}-image-${pinetime_VERS
 set(DFU_MCUBOOT_FILE_NAME ${EXECUTABLE_MCUBOOT_NAME}-dfu-${pinetime_VERSION_MAJOR}.${pinetime_VERSION_MINOR}.${pinetime_VERSION_PATCH}.zip)
 set(NRF5_LINKER_SCRIPT_MCUBOOT "${CMAKE_SOURCE_DIR}/gcc_nrf52-mcuboot.ld")
 add_executable(${EXECUTABLE_MCUBOOT_NAME} ${SOURCE_FILES})
-target_link_libraries(${EXECUTABLE_MCUBOOT_NAME} nimble nrf-sdk lvgl littlefs infinitime_fonts infinitime_apps)
+target_link_libraries(${EXECUTABLE_MCUBOOT_NAME} nimble nrf-sdk lvgl littlefs sunrise infinitime_fonts infinitime_apps)
 set_target_properties(${EXECUTABLE_MCUBOOT_NAME} PROPERTIES OUTPUT_NAME ${EXECUTABLE_MCUBOOT_FILE_NAME})
 target_compile_options(${EXECUTABLE_MCUBOOT_NAME} PUBLIC
         ${COMMON_FLAGS}
@@ -979,7 +996,7 @@ endif()
 set(EXECUTABLE_RECOVERY_NAME "pinetime-recovery")
 set(EXECUTABLE_RECOVERY_FILE_NAME ${EXECUTABLE_RECOVERY_NAME}-${pinetime_VERSION_MAJOR}.${pinetime_VERSION_MINOR}.${pinetime_VERSION_PATCH})
 add_executable(${EXECUTABLE_RECOVERY_NAME} ${RECOVERY_SOURCE_FILES})
-target_link_libraries(${EXECUTABLE_RECOVERY_NAME} nimble nrf-sdk littlefs infinitime_fonts infinitime_apps)
+target_link_libraries(${EXECUTABLE_RECOVERY_NAME} nimble nrf-sdk littlefs sunrise infinitime_fonts infinitime_apps)
 set_target_properties(${EXECUTABLE_RECOVERY_NAME} PROPERTIES OUTPUT_NAME ${EXECUTABLE_RECOVERY_FILE_NAME})
 target_compile_definitions(${EXECUTABLE_RECOVERY_NAME} PUBLIC "PINETIME_IS_RECOVERY")
 target_compile_options(${EXECUTABLE_RECOVERY_NAME} PUBLIC
@@ -1011,7 +1028,7 @@ set(IMAGE_RECOVERY_MCUBOOT_FILE_NAME ${EXECUTABLE_RECOVERY_MCUBOOT_NAME}-image-$
 set(IMAGE_RECOVERY_MCUBOOT_FILE_NAME_HEX ${IMAGE_RECOVERY_MCUBOOT_FILE_NAME}.hex)
 set(DFU_RECOVERY_MCUBOOT_FILE_NAME ${EXECUTABLE_RECOVERY_MCUBOOT_NAME}-dfu-${pinetime_VERSION_MAJOR}.${pinetime_VERSION_MINOR}.${pinetime_VERSION_PATCH}.zip)
 add_executable(${EXECUTABLE_RECOVERY_MCUBOOT_NAME} ${RECOVERY_SOURCE_FILES})
-target_link_libraries(${EXECUTABLE_RECOVERY_MCUBOOT_NAME} nimble nrf-sdk littlefs infinitime_fonts infinitime_apps)
+target_link_libraries(${EXECUTABLE_RECOVERY_MCUBOOT_NAME} nimble nrf-sdk littlefs sunrise infinitime_fonts infinitime_apps)
 set_target_properties(${EXECUTABLE_RECOVERY_MCUBOOT_NAME} PROPERTIES OUTPUT_NAME ${EXECUTABLE_RECOVERY_MCUBOOT_FILE_NAME})
 target_compile_definitions(${EXECUTABLE_RECOVERY_MCUBOOT_NAME} PUBLIC "PINETIME_IS_RECOVERY")
 target_compile_options(${EXECUTABLE_RECOVERY_MCUBOOT_NAME} PUBLIC
