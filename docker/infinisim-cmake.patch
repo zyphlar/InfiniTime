@@ -1,0 +1,19 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index edd6748..641b74a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -243,6 +243,14 @@ add_library(littlefs STATIC
+ target_include_directories(littlefs PUBLIC "${InfiniTime_DIR}/src/libs/littlefs")
+ target_link_libraries(infinisim PRIVATE littlefs)
+ 
++# sunset
++add_library(sunset STATIC
++  ${InfiniTime_DIR}/src/libs/sunset/src/sunset.h
++  ${InfiniTime_DIR}/src/libs/sunset/src/sunset.cpp
++)
++target_include_directories(sunset PUBLIC "${InfiniTime_DIR}/src/libs/sunset")
++target_link_libraries(infinisim PRIVATE sunset)
++
+ # QCBOR
+ add_library(QCBOR STATIC
+   ${InfiniTime_DIR}/src/libs/QCBOR/src/ieee754.c

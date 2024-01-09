@@ -28,6 +28,8 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
     motionController {motionController},
     statusIcons(batteryController, bleController) {
 
+  sHour = 99;
+  sMinute = 99;
   statusIcons.Create();
 
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
@@ -40,13 +42,17 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
   lv_obj_set_style_local_text_color(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x999999));
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
   if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+    lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_42);
+  } else if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
+    lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
+    lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
   } else {
+    lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
   }
-
-  lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
 
   label_time_ampm = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text_static(label_time_ampm, "");
@@ -89,51 +95,63 @@ void WatchFaceDigital::Refresh() {
     lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(notificationState.Get()));
   }
 
-  currentDateTime = std::chrono::time_point_cast<std::chrono::minutes>(dateTimeController.CurrentDateTime());
+  currentDateTime = dateTimeController.CurrentDateTime();
 
   if (currentDateTime.IsUpdated()) {
+
     uint8_t hour = dateTimeController.Hours();
     uint8_t minute = dateTimeController.Minutes();
 
-    /* Begin difference from WatchFaceDigital*/
-    if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
-      std::string hourStr, timeStr;
-      hour = hour % 12; // 12 becomes 0, 13 becomes 1
-      auto sector = minute / 15 + (minute % 15 > 7);
-      // advance the hour modulo 12 and reset the minutes if we're close to the top
-      // so we get "quarter to $hour+1" instead of needing "three quarters past $hour"
-      if (sector > 3) {
-        hour = (hour + 1) % 12;
-        sector = 0;
-      }
+    if (sHour != hour || sMinute != minute || forceRefresh == true) {
+      forceRefresh = false;
+      sHour = hour;
+      sMinute = minute;
 
-      timeStr = timeSectors[sector];
-      if (timeStr.find("%1") != std::string::npos) {
-        hour = (hour + 1) % 12;
-      }
-      //hourStr = std::string("#") + timeAccent + " " + hourNames[hour] + "#";
-      hourStr = hourNames[hour];
-      timeStr.replace(timeStr.find("%"), 2, hourStr);
+      /* Begin difference from WatchFaceDigital*/
+      if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+        std::string hourStr, timeStr;
+        hour = hour % 12; // 12 becomes 0, 13 becomes 1
+        auto sector = minute / 15 + (minute % 15 > 7);
+        // advance the hour modulo 12 and reset the minutes if we're close to the top
+        // so we get "quarter to $hour+1" instead of needing "three quarters past $hour"
+        if (sector > 3) {
+          hour = (hour + 1) % 12;
+          sector = 0;
+        }
 
-      lv_label_set_text(label_time, timeStr.c_str());
-      lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
-    /* End difference from WatchFaceDigital*/
-    } else if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
-      char ampmChar[3] = "AM";
-      if (hour == 0) {
-        hour = 12;
-      } else if (hour == 12) {
-        ampmChar[0] = 'P';
-      } else if (hour > 12) {
-        hour = hour - 12;
-        ampmChar[0] = 'P';
+        timeStr = timeSectors[sector];
+        if (timeStr.find("%1") != std::string::npos) {
+          hour = (hour + 1) % 12;
+        }
+        //hourStr = std::string("#") + timeAccent + " " + hourNames[hour] + "#";
+        hourStr = hourNames[hour];
+        timeStr.replace(timeStr.find("%"), 2, hourStr);
+
+        lv_label_set_text(label_time_ampm, "");
+        lv_label_set_text(label_time, timeStr.c_str());
+        lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, -10);
+        lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_42);
+      /* End difference from WatchFaceDigital*/
+      } else if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
+        char ampmChar[3] = "AM";
+        if (hour == 0) {
+          hour = 12;
+        } else if (hour == 12) {
+          ampmChar[0] = 'P';
+        } else if (hour > 12) {
+          hour = hour - 12;
+          ampmChar[0] = 'P';
+        }
+        lv_label_set_text(label_time_ampm, ampmChar);
+        lv_label_set_text_fmt(label_time, "%2d:%02d", hour, minute);
+        lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
+        lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
+      } else {
+        lv_label_set_text_fmt(label_time, "%02d:%02d", hour, minute);
+        lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
+        lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
       }
-      lv_label_set_text(label_time_ampm, ampmChar);
-      lv_label_set_text_fmt(label_time, "%2d:%02d", hour, minute);
-      lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 0);
-    } else {
-      lv_label_set_text_fmt(label_time, "%02d:%02d", hour, minute);
-      lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, 0);
+      lv_obj_realign(label_time);
     }
 
     currentDate = std::chrono::time_point_cast<days>(currentDateTime.Get());
@@ -180,6 +198,22 @@ void WatchFaceDigital::Refresh() {
     lv_obj_realign(stepValue);
     lv_obj_realign(stepIcon);
   }
+}
+
+bool WatchFaceDigital::OnTouchEvent(Pinetime::Applications::TouchEvents event) {
+  if ((event == Pinetime::Applications::TouchEvents::LongTap)) {
+    Pinetime::Controllers::Settings::ClockType clockType = settingsController.GetClockType();
+    if (clockType == Pinetime::Controllers::Settings::ClockType::Fuzzy) {
+      settingsController.SetClockType(Pinetime::Controllers::Settings::ClockType::H12);
+    } else {
+      settingsController.SetClockType(Pinetime::Controllers::Settings::ClockType::Fuzzy);
+    }
+    settingsController.SaveSettings();
+    forceRefresh=true;
+    WatchFaceDigital::Refresh();
+    return true;
+  }
+  return false;
 }
 
 /* Inspired by XFCE4-panel's fuzzy clock.

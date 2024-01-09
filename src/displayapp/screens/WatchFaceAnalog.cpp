@@ -8,6 +8,7 @@
 #include "displayapp/screens/NotificationIcon.h"
 #include "components/settings/Settings.h"
 #include "displayapp/InfiniTimeTheme.h"
+#include "sunset/src/sunset.h"
 
 using namespace Pinetime::Applications::Screens;
 
@@ -71,12 +72,9 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
   sMinute = 99;
   sSecond = 99;
 
-  minutesSunrise = 360; //sun.calcSunrise();
-  minutesSunset = 1080; //sun.calcSunset();
-  minutesDaytime = (minutesSunset - minutesSunrise);
-  minutesNighttime = (1440 - minutesDaytime);
+  location = settingsController.GetLocation();
 
-  // begin sundial
+  // begin sundial watch face
   if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
     major_scales = lv_linemeter_create(lv_scr_act(), nullptr);
     lv_linemeter_set_scale(major_scales, 165, 11);
@@ -217,30 +215,49 @@ WatchFaceAnalog::~WatchFaceAnalog() {
 void WatchFaceAnalog::drawWatchFaceModeNight(){
   uint8_t hour = dateTimeController.Hours();
   uint8_t minute = dateTimeController.Minutes();
-  minutesBeforeSunset = minutesSunset - (hour * 60 + minute); // i.e.zero degrees
-  HourLength = 90; // sundial hand length
-
-  int16_t hourAngle;
-
-  if(minutesBeforeSunset > 0 && minutesBeforeSunset < minutesDaytime) { // day (after sunrise)
-    hourAngle = 180.0 * minutesBeforeSunset / minutesDaytime + 90;
-  } else { // night (before sunrise or after sunset)
-    lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, DARK_GRAY);
-    lv_style_set_line_color(&hour_line_style_trace, LV_STATE_DEFAULT, DARK_GRAY);
-    lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
-    lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_ORANGE);
-    lv_obj_set_style_local_text_color(one, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
-    lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
-
-    if(minutesBeforeSunset > minutesDaytime) { // before sunrise
-      hourAngle = 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime + 90;
-    } else { // after sunset
-      hourAngle = 180 + 180.0 * minutesBeforeSunset / minutesNighttime + 90;
-    }
-  }
-  //NRF_LOG_INFO("angle : %d, sun %d day %d len %d", hourAngle, minutesBeforeSunset, minutesDaytime, HourLength);
 
   if (sHour != hour || sMinute != minute) {
+    // sun.setPosition(settings.lat.toFloat(), settings.lon.toFloat(), settings.gmtOffset / 3600);
+    sun.setPosition((float)location.latitude, (float)location.longitude, location.tzOffset);
+
+    //from minutes past midnight
+    sun.setCurrentDate(dateTimeController.Year(), static_cast<uint8_t>(dateTimeController.Month())+1, dateTimeController.Day());
+    sun.setTZOffset(location.tzOffset);
+
+    minutesSunrise = sun.calcSunrise(); //360;
+    minutesSunset = sun.calcSunset(); //1080;
+    minutesDaytime = (minutesSunset - minutesSunrise);
+    minutesNighttime = (1440 - minutesDaytime);
+
+    minutesBeforeSunset = minutesSunset - (hour * 60 + minute); // i.e.zero degrees
+    HourLength = 90; // sundial hand length
+
+    int16_t hourAngle;
+
+    if(minutesBeforeSunset > 0 && minutesBeforeSunset < minutesDaytime) { // day (after sunrise)
+      hourAngle = 180.0 * minutesBeforeSunset / minutesDaytime + 90;
+    } else { // night (before sunrise or after sunset)
+      lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, DARK_GRAY);
+      lv_style_set_line_color(&hour_line_style_trace, LV_STATE_DEFAULT, DARK_GRAY);
+      lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
+      lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_ORANGE);
+      lv_obj_set_style_local_text_color(one, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
+      lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
+
+      if(minutesBeforeSunset > minutesDaytime) { // before sunrise
+        hourAngle = 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime + 90;
+      } else { // after sunset
+        hourAngle = 180 + 180.0 * minutesBeforeSunset / minutesNighttime + 90;
+      }
+    }
+  /*NRF_LOG_INFO("a: %d, la: %f, lo: %f, ri: %d, se: %d, be: %d",
+    hourAngle,
+    (float)location.latitude,
+    (float)location.longitude,
+    minutesSunrise,
+    minutesSunset,
+    minutesBeforeSunset);*/
+
     sHour = hour;
     sMinute = minute;
 

@@ -50,6 +50,12 @@ namespace Pinetime {
         int colorIndex = 0;
       };
 
+      struct Location {
+        int16_t latitude;
+        int16_t longitude;
+        int8_t tzOffset;
+      };
+
       Settings(Pinetime::Controllers::FS& fs);
 
       Settings(const Settings&) = delete;
@@ -275,6 +281,21 @@ namespace Pinetime {
         return settings.stepsGoal;
       };
 
+      void SetLocation(Location loc) {
+        if (
+          loc.latitude != settings.location.latitude ||
+          loc.longitude != settings.location.longitude ||
+          loc.tzOffset != settings.location.tzOffset
+          ) {
+          settingsChanged = true;
+        }
+        settings.location = loc;
+      };
+
+      Location GetLocation() const {
+        return settings.location;
+      };
+
       void SetBleRadioEnabled(bool enabled) {
         bleRadioEnabled = enabled;
       };
@@ -308,6 +329,7 @@ namespace Pinetime {
         uint16_t shakeWakeThreshold = 150;
 
         Controllers::BrightnessController::Levels brightLevel = Controllers::BrightnessController::Levels::Medium;
+        Location location = {(int16_t)0,(int16_t)0,(int8_t)0};
       };
 
       SettingsData settings;

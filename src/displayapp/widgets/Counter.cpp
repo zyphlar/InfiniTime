@@ -136,8 +136,7 @@ void Counter::Create() {
 
   static constexpr uint8_t padding = 5;
   const uint8_t width = std::max(lv_obj_get_width(number) + padding * 2, 58);
-  static constexpr uint8_t btnHeight = 50;
-  const uint8_t containerHeight = btnHeight * 2 + lv_obj_get_height(number) + padding * 2;
+  containerHeight = btnHeight * 2 + lv_obj_get_height(number) + padding * 2;
 
   lv_obj_set_size(counterContainer, width, containerHeight);
 

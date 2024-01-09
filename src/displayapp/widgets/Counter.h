@@ -18,6 +18,15 @@ namespace Pinetime {
         void EnableMonthMode();
         void SetMax(int newMax);
         void SetValueChangedEventCallback(void* userData, void (*handler)(void* userData));
+        void SetWidth(uint8_t width) {
+          lv_obj_set_size(counterContainer, width, containerHeight);
+          lv_obj_set_size(upBtn, width, btnHeight);
+          lv_obj_set_size(downBtn, width, btnHeight);
+          linePoints[0] = {0, 0};
+          linePoints[1] = {width, 0};
+          lv_line_set_points(upperLine, linePoints, 2);
+          lv_line_set_points(lowerLine, linePoints, 2);
+        }
 
         int GetValue() const {
           return value;
@@ -42,6 +51,8 @@ namespace Pinetime {
         int max;
         int value;
         const int leadingZeroCount;
+        uint8_t containerHeight;
+        static constexpr uint8_t btnHeight = 50;
         bool twelveHourMode = false;
         bool monthMode = false;
         lv_font_t& font;

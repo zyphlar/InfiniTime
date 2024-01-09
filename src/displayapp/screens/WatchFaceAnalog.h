@@ -11,6 +11,7 @@
 #include "components/ble/NotificationManager.h"
 #include "displayapp/screens/BatteryIcon.h"
 #include "utility/DirtyValue.h"
+#include "sunset/src/sunset.h"
 
 namespace Pinetime {
   namespace Controllers {
@@ -77,6 +78,8 @@ namespace Pinetime {
 
         BatteryIcon batteryIcon;
 
+        Controllers::Settings::Location location;
+        SunSet sun;
         int16_t minutesSunrise;
         int16_t minutesSunset;
         int16_t minutesDaytime;

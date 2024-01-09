@@ -39,6 +39,7 @@ namespace Pinetime {
 
           {Symbols::shoe, "Steps", Apps::SettingSteps},
           {Symbols::clock, "Date&Time", Apps::SettingSetDateTime},
+          {Symbols::map, "Location", Apps::SettingLocation},
           {Symbols::cloudSunRain, "Weather", Apps::SettingWeatherFormat},
           {Symbols::batteryHalf, "Battery", Apps::BatteryInfo},
 
