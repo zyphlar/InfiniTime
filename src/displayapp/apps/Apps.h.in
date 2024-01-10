@@ -49,9 +49,6 @@ namespace Pinetime {
       Digital,
       Analog,
       PineTimeStyle,
-      Terminal,
-      Infineat,
-      CasioStyleG7710,
     };
 
     template <Apps>
@@ -74,10 +71,7 @@ namespace Pinetime {
 
     using UserWatchFaceTypes = WatchFaceTypeList<WatchFace::Digital,
                                                  WatchFace::Analog,
-                                                 WatchFace::PineTimeStyle,
-                                                 WatchFace::Terminal,
-                                                 WatchFace::Infineat,
-                                                 WatchFace::CasioStyleG7710>;
+                                                 WatchFace::PineTimeStyle>;
 
     static_assert(UserWatchFaceTypes::Count >= 1);
   }

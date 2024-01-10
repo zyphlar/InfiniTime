@@ -42,8 +42,9 @@ namespace Pinetime {
         uint8_t sHour, sMinute;
         uint8_t displayedHour = -1;
         uint8_t displayedMinute = -1;
-        static const char* timeSectors[4];
-        static const char* hourNames[12];
+
+        char const* mods[7] = {"", "five", "ten", "quarter", "twenty", "twenty five", "half"};
+        char const* nums[13] = {"twelve", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"};
 
         Utility::DirtyValue<uint8_t> batteryPercentRemaining {};
         Utility::DirtyValue<bool> powerPresent {};
@@ -75,6 +76,8 @@ namespace Pinetime {
         lv_task_t* taskRefresh;
         bool forceRefresh=false;
         Widgets::StatusIcons statusIcons;
+
+        void printTimeWords(int h, int m);
       };
     }
 

@@ -3,7 +3,7 @@ name: CI
 # Run this workflow whenever the build may be affected
 on:
   push:
-    branches: [ main, wb/fuzzy, wb/fuzzy-norm, wb/fuzzy-analog ]
+    branches: [ main, wb/fuzzy, wb/fuzzy-norm, wb/fuzzy-analog, wb/fuzzy-everything-wolf ]
     paths-ignore:
       - 'doc/**'
       - '**.md'
