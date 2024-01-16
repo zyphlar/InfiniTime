@@ -52,6 +52,7 @@ namespace Pinetime {
         lv_obj_t* large_scales;
         lv_obj_t* one;
         lv_obj_t* twelve;
+        lv_obj_t* axis;
 
         lv_obj_t* hour_body;
         lv_obj_t* hour_body_trace;
@@ -92,7 +93,7 @@ namespace Pinetime {
         Controllers::NotificationManager& notificationManager;
         Controllers::Settings& settingsController;
 
-        void drawWatchFaceModeNight();
+        void drawWatchFaceWadokei();
         void UpdateClock();
         void SetBatteryIcon();
 

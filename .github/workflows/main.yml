@@ -3,7 +3,7 @@ name: CI
 # Run this workflow whenever the build may be affected
 on:
   push:
-    branches: [ main, wb/fuzzy, wb/fuzzy-norm, wb/fuzzy-analog, wb/fuzzy-everything-wolf ]
+    branches: [ main, wb/fuzzy, wb/fuzzy-norm, wb/fuzzy-analog, wb/fuzzy-everything-wolf, wb/smellthis ]
     paths-ignore:
       - 'doc/**'
       - '**.md'
@@ -90,6 +90,9 @@ jobs:
 
     - name: Add sunset lib to InfiniSim
       run: patch -i docker/infinisim-cmake.patch InfiniSim/CMakeLists.txt
+
+    - name: Remove Terminal from InfiniSim
+      run: patch -i docker/infinisim-terminal.patch InfiniSim/littlefs-do-main.cpp
 
     - name: CMake
       # disable BUILD_RESOURCES as this is already done when building the firmware
