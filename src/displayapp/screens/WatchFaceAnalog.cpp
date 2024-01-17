@@ -44,6 +44,11 @@ namespace {
                        .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
   }
 
+  lv_point_t CoordinateRelocateTriangle(int16_t radius, int16_t angle, int16_t base_offset) {
+    return lv_point_t {.x = CoordinateXRelocate(radius * static_cast<int32_t>(Sine(angle)) / LV_TRIG_SCALE + base_offset),
+                       .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
+  }
+
   void printKoku(const char* str, uint8_t i, bool big){
     lv_obj_t* koku = lv_label_create(lv_scr_act(), NULL);
     lv_label_set_align(koku, LV_LABEL_ALIGN_CENTER);
@@ -62,13 +67,23 @@ namespace {
 
   void drawTime(lv_obj_t * obj, uint8_t hour, uint8_t minute, lv_color_t color, uint8_t x, uint8_t y) {
     lv_label_set_align(obj, LV_LABEL_ALIGN_CENTER);
-    lv_label_set_text_fmt(obj, "%2d:%02d", hour, minute);
+    lv_label_set_text_fmt(obj, "%02d:%02d", hour, minute);
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_align(obj, NULL, LV_ALIGN_CENTER, x, y);
     lv_obj_set_style_local_text_color(obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color);
     lv_obj_set_style_local_text_font(obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_bold_20);
   }
 
+  void drawCircle(uint8_t width, bool left, lv_coord_t offset, lv_color_t color){
+    lv_obj_t * cir = lv_obj_create(lv_scr_act(), nullptr);
+    lv_obj_set_size(cir, width, width);
+    if (left)
+      lv_obj_align(cir, nullptr, LV_ALIGN_IN_LEFT_MID, offset, 0);
+    else
+      lv_obj_align(cir, nullptr, LV_ALIGN_IN_RIGHT_MID, offset, 0);
+    lv_obj_set_style_local_bg_color(cir, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, color);
+    lv_obj_set_style_local_radius(cir, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+  }
 }
 
 WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
@@ -92,6 +107,17 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
 
   // begin Japanese watch face
   if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
+    lv_obj_t * nighttime = lv_obj_create(lv_scr_act(), nullptr);
+    lv_obj_set_size(nighttime, LV_HOR_RES, LV_HOR_RES/2);
+    lv_obj_set_pos(nighttime, 0, 0);
+    lv_obj_set_style_local_bg_color(nighttime, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
+    lv_obj_set_style_local_radius(nighttime, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+
+    drawCircle(35, true, 4, DARK_GRAY);
+    drawCircle(25, true, 33, DARK_GRAY);
+    drawCircle(35, false, -3, LV_COLOR_BLACK);
+    drawCircle(25, false, -32, LV_COLOR_BLACK);
+
     major_scales = lv_linemeter_create(lv_scr_act(), nullptr);
     lv_linemeter_set_scale(major_scales, 360, 13);
     lv_linemeter_set_angle_offset(major_scales, 15);
@@ -113,16 +139,19 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
     const char* kokuZodiac[] = {"子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"};
     const char* kokuNums[] = {"九","八","七","六","五","四"};
 
-    // abusing existing objs as text labels for this purpose
-    // one = lv_label_create(lv_scr_act(), nullptr);
     twelve = lv_label_create(lv_scr_act(), nullptr);
-    // minor_scales = lv_label_create(lv_scr_act(), nullptr);
-    // large_scales = lv_label_create(lv_scr_act(), nullptr);
 
     for (int i=0;i<12;i++) {
       printKoku(kokuZodiac[i], i, true);
       printKoku(kokuNums[i%6], i, false);
     }
+
+    lv_style_init(&hour_line_style);
+    lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 10);
+    lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
+    lv_style_init(&hour_line_style_trace);
+    lv_style_set_line_width(&hour_line_style_trace, LV_STATE_DEFAULT, 10);
+    lv_style_set_line_rounded(&hour_line_style_trace, LV_STATE_DEFAULT, true);
   } else {
     minor_scales = lv_linemeter_create(lv_scr_act(), nullptr);
     lv_linemeter_set_scale(minor_scales, 300, 51);
@@ -159,6 +188,11 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
     lv_label_set_text_static(twelve, "12");
     lv_obj_set_pos(twelve, 110, 10);
     lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_AQUA);
+  
+    lv_style_init(&hour_line_style);
+    lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 7);
+    lv_style_init(&hour_line_style_trace);
+    lv_style_set_line_width(&hour_line_style_trace, LV_STATE_DEFAULT, 3);
   }
 
   batteryIcon.Create(lv_scr_act());
@@ -208,16 +242,10 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
   lv_style_set_line_rounded(&minute_line_style_trace, LV_STATE_DEFAULT, false);
   lv_obj_add_style(minute_body_trace, LV_LINE_PART_MAIN, &minute_line_style_trace);
 
-  lv_style_init(&hour_line_style);
-  lv_style_set_line_width(&hour_line_style, LV_STATE_DEFAULT, 7);
   lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-  lv_style_set_line_rounded(&hour_line_style, LV_STATE_DEFAULT, true);
   lv_obj_add_style(hour_body, LV_LINE_PART_MAIN, &hour_line_style);
 
-  lv_style_init(&hour_line_style_trace);
-  lv_style_set_line_width(&hour_line_style_trace, LV_STATE_DEFAULT, 3);
   lv_style_set_line_color(&hour_line_style_trace, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-  lv_style_set_line_rounded(&hour_line_style_trace, LV_STATE_DEFAULT, false);
   lv_obj_add_style(hour_body_trace, LV_LINE_PART_MAIN, &hour_line_style_trace);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
@@ -243,58 +271,50 @@ void WatchFaceAnalog::drawWatchFaceWadokei(){
   uint8_t minute = dateTimeController.Minutes();
 
   if (sHour != hour || sMinute != minute) {
-    // sun.setPosition(settings.lat.toFloat(), settings.lon.toFloat(), settings.gmtOffset / 3600);
     sun.setPosition((float)location.latitude, (float)location.longitude, location.tzOffset);
 
     //from minutes past midnight
     sun.setCurrentDate(dateTimeController.Year(), static_cast<uint8_t>(dateTimeController.Month())+1, dateTimeController.Day());
     sun.setTZOffset(location.tzOffset);
 
-    minutesSunrise = sun.calcSunrise(); //360;
-    minutesSunset = sun.calcSunset(); //1080;
+    minutesSunrise = sun.calcSunrise();
+    minutesSunset = sun.calcSunset();
     minutesDaytime = (minutesSunset - minutesSunrise);
     minutesNighttime = (1440 - minutesDaytime);
 
     minutesBeforeSunset = minutesSunset - (hour * 60 + minute); // i.e.zero degrees
-    HourLength = 70; // wadokei hand length
+    HourLength = 40; // wadokei hand length
 
-    int16_t oldHourAngle=0;
-    auto const angle = ((hour * 15 + minute / 2)+180)%360; //24-hr rotation with 0/24 at the bottom
+    int16_t hourAngle=0;
+    // auto const hourAngle = ((hour * 15 + minute / 2)+180)%360; //24-hr rotation with 0/24 at the bottom
 
-    if(minutesBeforeSunset > 0 && minutesBeforeSunset < minutesDaytime) { // day (after sunrise)
-      // oldHourAngle = 180.0 * minutesBeforeSunset / minutesDaytime + 90;
-    } else { // night (before sunrise or after sunset)
-      // lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, DARK_GRAY);
-      // lv_style_set_line_color(&hour_line_style_trace, LV_STATE_DEFAULT, DARK_GRAY);
-      // lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
-      // lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_ORANGE);
-      // lv_obj_set_style_local_text_color(one, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
-      // lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
-
-      if(minutesBeforeSunset > minutesDaytime) { // before sunrise
-        // oldHourAngle = 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime + 90;
-      } else { // after sunset
-        // oldHourAngle = 180 + 180.0 * minutesBeforeSunset / minutesNighttime + 90;
-      }
+    if(minutesBeforeSunset > minutesDaytime) {
+      hourAngle = -180.0 - 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime;
     }
-    NRF_LOG_INFO("oa: %d, a: %d, la: %f, lo: %f, be: %d",
-      oldHourAngle,
-      angle,
-      (float)location.latitude,
-      (float)location.longitude,
-      minutesBeforeSunset);
+    else if(minutesBeforeSunset > 0 ) {
+      hourAngle = -180.0 * minutesBeforeSunset / minutesDaytime;
+    }
+    else {
+      hourAngle = -180.0 * minutesBeforeSunset / minutesNighttime;
+    }
+
+    // NRF_LOG_INFO("angle: %d, day: %d, night: %d, bef: %d",
+    //   hourAngle+90,
+    //   minutesDaytime,
+    //   minutesNighttime,
+    //   minutesBeforeSunset);
 
     sHour = hour;
     sMinute = minute;
 
-    // hour_point_trace[0] = CoordinateRelocate(HourLength*.75, angle);
-    // hour_point_trace[1] = CoordinateRelocate(HourLength, angle);
+    hour_point_trace[0] = CoordinateRelocateTriangle(HourLength/4, hourAngle+90, -25);
+    hour_point_trace[1] = CoordinateRelocateTriangle(HourLength, hourAngle+90, 0);
 
-    hour_point[0] = CoordinateRelocate(0, angle);
-    hour_point[1] = CoordinateRelocate(HourLength*.75, angle);
+    hour_point[0] = CoordinateRelocateTriangle(HourLength/4, hourAngle+90, 25);
+    hour_point[1] = CoordinateRelocateTriangle(HourLength, hourAngle+90, 0);
 
     lv_line_set_points(hour_body, hour_point, 2);
-    // lv_line_set_points(hour_body_trace, hour_point_trace, 2);
+    lv_line_set_points(hour_body_trace, hour_point_trace, 2);
 
     drawTime(twelve, hour, minute, LV_COLOR_BLACK, 0, 0);
     lv_obj_move_foreground(twelve);
@@ -395,13 +415,13 @@ void WatchFaceAnalog::Refresh() {
     currentDate = std::chrono::time_point_cast<days>(currentDateTime.Get());
     if (currentDate.IsUpdated()) {
       if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
-        char const* MonthsString[] = {"--", "IANUARIUS","FEBRUARIUS","MARTIUS","APRILIS","MARTIUSIUNIUS","QUINTILIS","SEXTILIS","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"};
+        /*char const* MonthsString[] = {"--", "IANUARIUS","FEBRUARIUS","MARTIUS","APRILIS","MARTIUSIUNIUS","QUINTILIS","SEXTILIS","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"};
         char const* DaysString[] = {"--", "LUNAE", "MARTIS", "MERCURII", "IOVIS", "VENERIS", "SATURNI", "SOLIS"};
         char const* RomanNumeralsString[] = {"--", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"};
         lv_label_set_text_fmt(label_date_day, "%s\n%s %s",
           DaysString[static_cast<uint8_t>(dateTimeController.DayOfWeek())],
           RomanNumeralsString[static_cast<uint8_t>(dateTimeController.Day())],
-          MonthsString[static_cast<uint8_t>(dateTimeController.Month())]);
+          MonthsString[static_cast<uint8_t>(dateTimeController.Month())]);*/
         lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, -2000);
       } else {
         lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
