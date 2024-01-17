@@ -46,7 +46,6 @@ namespace Pinetime {
     };
 
     enum class WatchFace : uint8_t {
-      Digital,
       Analog,
       PineTimeStyle,
     };
@@ -69,8 +68,7 @@ namespace Pinetime {
       static constexpr size_t Count = sizeof...(Ws);
     };
 
-    using UserWatchFaceTypes = WatchFaceTypeList<WatchFace::Digital,
-                                                 WatchFace::Analog,
+    using UserWatchFaceTypes = WatchFaceTypeList<WatchFace::Analog,
                                                  WatchFace::PineTimeStyle>;
 
     static_assert(UserWatchFaceTypes::Count >= 1);

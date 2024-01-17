@@ -44,6 +44,22 @@ namespace {
                        .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
   }
 
+  void printKoku(const char* str, uint8_t i, bool big){
+    lv_obj_t* koku = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_align(koku, LV_LABEL_ALIGN_CENTER);
+    lv_label_set_text(koku, str);
+    lv_point_t pt;
+    if (big) {
+      pt = CoordinateRelocate(LV_HOR_RES/2-20, i*30);
+      lv_obj_set_style_local_text_font(koku, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &noto_serif_cjk_20);
+    } else {
+      pt = CoordinateRelocate(LV_HOR_RES/2-45, i*30);
+      lv_obj_set_style_local_text_font(koku, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &noto_serif_cjk_15);
+    }
+    lv_obj_align(koku, NULL, LV_ALIGN_CENTER, LV_HOR_RES/2-pt.x-10, LV_HOR_RES/2-pt.y);
+    lv_obj_set_style_local_text_color(koku, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  }
+
 }
 
 WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
@@ -73,27 +89,24 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
     lv_obj_set_size(major_scales, 240, 240);
     lv_obj_align(major_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_local_bg_opa(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 40);
+    lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 60);
     lv_obj_set_style_local_scale_end_line_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 1);
     lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
     axis = lv_arc_create(lv_scr_act(), NULL);
     lv_obj_set_size(axis, 40, 40);
     lv_arc_set_bg_angles(axis, 0, 360);
+    lv_arc_set_end_angle(axis, 360);
     lv_obj_align(axis, NULL, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_local_bg_color(axis, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    lv_obj_set_style_local_line_color(axis, LV_ARC_PART_INDIC, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
-    one = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_align(one, LV_LABEL_ALIGN_LEFT);
-    lv_label_set_text(one, "I");
-    lv_obj_align(one, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 0);
-    lv_obj_set_style_local_text_color(one, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    const char* kokuZodiac[] = {"子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"};
+    const char* kokuNums[] = {"九","八","七","六","五","四"};
 
-    twelve = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_align(twelve, LV_LABEL_ALIGN_RIGHT);
-    lv_label_set_text(twelve, "XII");
-    lv_obj_align(twelve, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 0);
-    lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    for (int i=0;i<12;i++) {
+      printKoku(kokuZodiac[i], i, true);
+      printKoku(kokuNums[i%6], i, false);
+    }
   } else {
     minor_scales = lv_linemeter_create(lv_scr_act(), nullptr);
     lv_linemeter_set_scale(minor_scales, 300, 51);
@@ -258,14 +271,19 @@ void WatchFaceAnalog::drawWatchFaceWadokei(){
     sHour = hour;
     sMinute = minute;
 
-    hour_point_trace[0] = CoordinateRelocate(HourLength*.75, angle);
-    hour_point_trace[1] = CoordinateRelocate(HourLength, angle);
+    // hour_point_trace[0] = CoordinateRelocate(HourLength*.75, angle);
+    // hour_point_trace[1] = CoordinateRelocate(HourLength, angle);
 
     hour_point[0] = CoordinateRelocate(0, angle);
     hour_point[1] = CoordinateRelocate(HourLength*.75, angle);
 
     lv_line_set_points(hour_body, hour_point, 2);
-    lv_line_set_points(hour_body_trace, hour_point_trace, 2);
+    // lv_line_set_points(hour_body_trace, hour_point_trace, 2);
+
+    lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
+    lv_label_set_text_fmt(twelve, "%2d:%02d", hour, minute);
+    lv_obj_set_pos(twelve, 0, 0);
+    lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   }
 }
 
@@ -370,7 +388,7 @@ void WatchFaceAnalog::Refresh() {
           DaysString[static_cast<uint8_t>(dateTimeController.DayOfWeek())],
           RomanNumeralsString[static_cast<uint8_t>(dateTimeController.Day())],
           MonthsString[static_cast<uint8_t>(dateTimeController.Month())]);
-        lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
+        lv_obj_align(label_date_day, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, -2000);
       } else {
         lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
       }

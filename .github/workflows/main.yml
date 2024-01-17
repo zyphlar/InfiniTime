@@ -94,6 +94,9 @@ jobs:
     - name: Remove Terminal from InfiniSim
       run: patch -i docker/infinisim-terminal.patch InfiniSim/littlefs-do-main.cpp
 
+    - name: Remove Digital from InfiniSim
+      run: patch -i docker/infinisim-main.patch InfiniSim/main.cpp
+
     - name: CMake
       # disable BUILD_RESOURCES as this is already done when building the firmware
       run:  |

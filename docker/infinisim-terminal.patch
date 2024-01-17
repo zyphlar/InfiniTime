@@ -1,9 +1,13 @@
 diff --git a/littlefs-do-main.cpp b/littlefs-do-main.cpp
-index 0a5dfbd..5d902f8 100644
+index 0a5dfbd..3e818af 100644
 --- a/littlefs-do-main.cpp
 +++ b/littlefs-do-main.cpp
-@@ -540,7 +540,7 @@ int command_settings(const std::string &program_name, const std::vector<std::str
-       if (val == Pinetime::Applications::WatchFace::Digital) return "Digital";
+@@ -537,10 +537,10 @@ int command_settings(const std::string &program_name, const std::vector<std::str
+   {
+     auto clockface = settingsController.GetWatchFace();
+     auto clockface_str = [](auto val) {
+-      if (val == Pinetime::Applications::WatchFace::Digital) return "Digital";
++      //if (val == Pinetime::Applications::WatchFace::Digital) return "Digital";
        if (val == Pinetime::Applications::WatchFace::Analog) return "Analog";
        if (val == Pinetime::Applications::WatchFace::PineTimeStyle) return "PineTimeStyle";
 -      if (val == Pinetime::Applications::WatchFace::Terminal) return "Terminal";

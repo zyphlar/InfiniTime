@@ -14,6 +14,26 @@
       "size": 20,
       "patches": ["jetbrains_mono_bold_20.c_zero.patch", "jetbrains_mono_bold_20.c_M.patch"]
    },
+   "noto_serif_cjk_20": {
+      "sources": [
+         {
+            "file": "NotoSerifCJKjp-VF.ttf",
+            "symbols": "丑寅卯辰巳午未申酉戌亥子四五六七八九"
+         }
+      ],
+      "bpp": 1,
+      "size": 20
+   },
+   "noto_serif_cjk_15": {
+      "sources": [
+         {
+            "file": "NotoSerifCJKjp-VF.ttf",
+            "symbols": "四五六七八九"
+         }
+      ],
+      "bpp": 1,
+      "size": 15
+   },
    "jetbrains_mono_42": {
       "sources": [
          {

@@ -1,0 +1,20 @@
+diff --git a/main.cpp b/main.cpp
+index 8070db7..530ff4b 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -823,14 +823,10 @@ public:
+     void switch_to_screen(uint8_t screen_idx)
+     {
+       if (screen_idx == 1) {
+-        settingsController.SetWatchFace(Pinetime::Applications::WatchFace::Digital);
+-        displayApp.StartApp(Pinetime::Applications::Apps::Clock, Pinetime::Applications::DisplayApp::FullRefreshDirections::None);
+-      }
+-      else if (screen_idx == 2) {
+         settingsController.SetWatchFace(Pinetime::Applications::WatchFace::Analog);
+         displayApp.StartApp(Pinetime::Applications::Apps::Clock, Pinetime::Applications::DisplayApp::FullRefreshDirections::None);
+       }
+-      else if (screen_idx == 3) {
++      else if (screen_idx == 2) {
+         settingsController.SetWatchFace(Pinetime::Applications::WatchFace::PineTimeStyle);
+         displayApp.StartApp(Pinetime::Applications::Apps::Clock, Pinetime::Applications::DisplayApp::FullRefreshDirections::None);
+       }
