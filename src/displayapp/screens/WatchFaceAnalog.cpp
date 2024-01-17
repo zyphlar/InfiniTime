@@ -56,8 +56,17 @@ namespace {
       pt = CoordinateRelocate(LV_HOR_RES/2-45, i*30);
       lv_obj_set_style_local_text_font(koku, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &noto_serif_cjk_15);
     }
-    lv_obj_align(koku, NULL, LV_ALIGN_CENTER, LV_HOR_RES/2-pt.x-10, LV_HOR_RES/2-pt.y);
+    lv_obj_align(koku, NULL, LV_ALIGN_CENTER, LV_HOR_RES/2-pt.x, LV_HOR_RES/2-pt.y);
     lv_obj_set_style_local_text_color(koku, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  }
+
+  void drawTime(lv_obj_t * obj, uint8_t hour, uint8_t minute, lv_color_t color, uint8_t x, uint8_t y) {
+    lv_label_set_align(obj, LV_LABEL_ALIGN_CENTER);
+    lv_label_set_text_fmt(obj, "%2d:%02d", hour, minute);
+    lv_obj_set_pos(obj, 0, 0);
+    lv_obj_align(obj, NULL, LV_ALIGN_CENTER, x, y);
+    lv_obj_set_style_local_text_color(obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, color);
+    lv_obj_set_style_local_text_font(obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_bold_20);
   }
 
 }
@@ -81,7 +90,7 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
 
   location = settingsController.GetLocation();
 
-  // begin sundial watch face
+  // begin Japanese watch face
   if (settingsController.GetClockType() == Controllers::Settings::ClockType::Fuzzy) {
     major_scales = lv_linemeter_create(lv_scr_act(), nullptr);
     lv_linemeter_set_scale(major_scales, 360, 13);
@@ -89,19 +98,26 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
     lv_obj_set_size(major_scales, 240, 240);
     lv_obj_align(major_scales, nullptr, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_local_bg_opa(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 60);
+    lv_obj_set_style_local_scale_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 50);
     lv_obj_set_style_local_scale_end_line_width(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, 1);
     lv_obj_set_style_local_scale_end_color(major_scales, LV_LINEMETER_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
     axis = lv_arc_create(lv_scr_act(), NULL);
-    lv_obj_set_size(axis, 40, 40);
+    lv_obj_set_size(axis, 70, 70);
     lv_arc_set_bg_angles(axis, 0, 360);
     lv_arc_set_end_angle(axis, 360);
     lv_obj_align(axis, NULL, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_local_line_width(axis, LV_ARC_PART_INDIC, LV_STATE_DEFAULT, 40);
     lv_obj_set_style_local_line_color(axis, LV_ARC_PART_INDIC, LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
     const char* kokuZodiac[] = {"子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"};
     const char* kokuNums[] = {"九","八","七","六","五","四"};
+
+    // abusing existing objs as text labels for this purpose
+    // one = lv_label_create(lv_scr_act(), nullptr);
+    twelve = lv_label_create(lv_scr_act(), nullptr);
+    // minor_scales = lv_label_create(lv_scr_act(), nullptr);
+    // large_scales = lv_label_create(lv_scr_act(), nullptr);
 
     for (int i=0;i<12;i++) {
       printKoku(kokuZodiac[i], i, true);
@@ -240,13 +256,13 @@ void WatchFaceAnalog::drawWatchFaceWadokei(){
     minutesNighttime = (1440 - minutesDaytime);
 
     minutesBeforeSunset = minutesSunset - (hour * 60 + minute); // i.e.zero degrees
-    HourLength = 40; // wadokei hand length
+    HourLength = 70; // wadokei hand length
 
-    int16_t oldHourAngle;
-    auto const angle = (hour * 15 + minute / 2)+180; //24-hr rotation with 0/24 at the bottom
+    int16_t oldHourAngle=0;
+    auto const angle = ((hour * 15 + minute / 2)+180)%360; //24-hr rotation with 0/24 at the bottom
 
     if(minutesBeforeSunset > 0 && minutesBeforeSunset < minutesDaytime) { // day (after sunrise)
-      oldHourAngle = 180.0 * minutesBeforeSunset / minutesDaytime + 90;
+      // oldHourAngle = 180.0 * minutesBeforeSunset / minutesDaytime + 90;
     } else { // night (before sunrise or after sunset)
       // lv_style_set_line_color(&hour_line_style, LV_STATE_DEFAULT, DARK_GRAY);
       // lv_style_set_line_color(&hour_line_style_trace, LV_STATE_DEFAULT, DARK_GRAY);
@@ -256,9 +272,9 @@ void WatchFaceAnalog::drawWatchFaceWadokei(){
       // lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, DARK_GRAY);
 
       if(minutesBeforeSunset > minutesDaytime) { // before sunrise
-        oldHourAngle = 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime + 90;
+        // oldHourAngle = 180.0 * (minutesBeforeSunset - minutesDaytime) / minutesNighttime + 90;
       } else { // after sunset
-        oldHourAngle = 180 + 180.0 * minutesBeforeSunset / minutesNighttime + 90;
+        // oldHourAngle = 180 + 180.0 * minutesBeforeSunset / minutesNighttime + 90;
       }
     }
     NRF_LOG_INFO("oa: %d, a: %d, la: %f, lo: %f, be: %d",
@@ -280,10 +296,8 @@ void WatchFaceAnalog::drawWatchFaceWadokei(){
     lv_line_set_points(hour_body, hour_point, 2);
     // lv_line_set_points(hour_body_trace, hour_point_trace, 2);
 
-    lv_label_set_align(twelve, LV_LABEL_ALIGN_CENTER);
-    lv_label_set_text_fmt(twelve, "%2d:%02d", hour, minute);
-    lv_obj_set_pos(twelve, 0, 0);
-    lv_obj_set_style_local_text_color(twelve, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+    drawTime(twelve, hour, minute, LV_COLOR_BLACK, 0, 0);
+    lv_obj_move_foreground(twelve);
   }
 }
 

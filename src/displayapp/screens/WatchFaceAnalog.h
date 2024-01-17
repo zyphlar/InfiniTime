@@ -71,6 +71,7 @@ namespace Pinetime {
         lv_style_t minute_line_style;
         lv_style_t minute_line_style_trace;
         lv_style_t second_line_style;
+        lv_style_t axis_style;
 
         lv_obj_t* label_date_day;
         lv_obj_t* plugIcon;
