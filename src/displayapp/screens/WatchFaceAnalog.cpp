@@ -45,7 +45,7 @@ namespace {
   }
 
   lv_point_t CoordinateRelocateTriangle(int16_t radius, int16_t angle, int16_t base_offset) {
-    return lv_point_t {.x = CoordinateXRelocate(radius * static_cast<int32_t>(Sine(angle)) / LV_TRIG_SCALE + base_offset),
+    return lv_point_t {.x = CoordinateXRelocate((radius + base_offset) * static_cast<int32_t>(Sine(angle)) / LV_TRIG_SCALE),
                        .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
   }
 
