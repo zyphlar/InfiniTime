@@ -4,6 +4,16 @@
 
 Fast open-source firmware for the [PineTime smartwatch](https://www.pine64.org/pinetime/) with many features, written in modern C++.
 
+## Wadokei fork
+
+Based on [Sudrien's Watchy Wadokei](https://github.com/Sudrien/watchy_wadokei) --
+displays an Edo-period Japanese clock face and a sunrise/sunset-based hour hand.
+
+Also chimes hours according to the number on the face (9,8,7,6,5,4) at the top
+of each modern hour (so noon and 1pm will be 9 chimes, 2pm and 3pm will be 8, etc).
+
+See https://github.com/Sudrien/watchy_wadokei/blob/main/Reckoning.md for more ideas!
+
 ## New to InfiniTime?
 
 - [Getting started with InfiniTime](doc/gettingStarted/gettingStarted-1.0.md)

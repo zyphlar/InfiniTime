@@ -412,8 +412,8 @@ void DisplayApp::Refresh() {
 
         for (uint8_t i=0; i<myChimes; i++){
           // NRF_LOG_INFO("buzz!");
-          motorController.RunForDuration(35);
-          vTaskDelay(800);
+          motorController.RunForDuration(15);
+          vTaskDelay(1000);
         }
         break;
       case Messages::OnChargingEvent:
