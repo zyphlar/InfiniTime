@@ -4,6 +4,15 @@
 
 Fast open-source firmware for the [PineTime smartwatch](https://www.pine64.org/pinetime/) with many features, written in modern C++.
 
+## Roman Time
+
+This branch contains a sundial that tries to approximate a Roman sundial
+as if it was mounted on a south-facing wall (i.e. rotates counterclockwise).
+
+It's activated by selecting the Analog face and Fuzzy time format.
+
+Based on (Sudrien's Roman watch face)[https://github.com/Sudrien/watchy_romantime]
+
 ## New to InfiniTime?
 
 - [Getting started with InfiniTime](doc/gettingStarted/gettingStarted-1.0.md)
