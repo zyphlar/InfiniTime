@@ -42,8 +42,8 @@ SettingSetTime::SettingSetTime(Pinetime::Controllers::DateTime& dateTimeControll
 
   lv_obj_t* staticLabel = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_font(staticLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_42);
-  lv_label_set_text_static(staticLabel, "00:00:00");
-  lv_obj_align(staticLabel, lv_scr_act(), LV_ALIGN_CENTER, 0, POS_Y_TEXT);
+  lv_label_set_text_static(staticLabel, ":00");
+  lv_obj_align(staticLabel, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, -33, POS_Y_TEXT);
 
   hourCounter.Create();
   if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {

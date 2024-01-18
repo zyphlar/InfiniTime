@@ -232,6 +232,11 @@ void DisplayApp::Refresh() {
 
   Messages msg;
   if (xQueueReceive(msgQueue, &msg, queueTimeout) == pdTRUE) {
+
+    // let's do otaku chimes
+    uint8_t myHour = dateTimeController.Hours();
+    uint8_t myChimes = 9-(((int)floor(myHour/2))%6);
+
     switch (msg) {
       case Messages::DimScreen:
         DimScreen();
@@ -377,7 +382,40 @@ void DisplayApp::Refresh() {
         break;
       case Messages::Chime:
         LoadNewScreen(Apps::Clock, DisplayApp::FullRefreshDirections::None);
-        motorController.RunForDuration(35);
+
+        // hour chime
+        // 0    9
+        // 1    9  
+        // 2    8
+        // 3    8  
+        // 4    7
+        // 5    7  
+        // 6    6
+        // 7    6  
+        // 8    5
+        // 9    5  
+        // 10   4
+        // 11   4   
+        // 12   9
+        // 13   9   
+        // 14   8
+        // 15   8   
+        // 16   7
+        // 17   7   
+        // 18   6
+        // 19   6   
+        // 20   5
+        // 21   5   
+        // 22   4
+        // 23   4   
+        motorController.RunForDuration(15);
+        // NRF_LOG_INFO("buzzing %d times", myChimes);
+
+        for (uint8_t i=0; i<myChimes; i++){
+          // NRF_LOG_INFO("buzz!");
+          motorController.RunForDuration(254);
+          vTaskDelay(254);
+        }
         break;
       case Messages::OnChargingEvent:
         RestoreBrightness();

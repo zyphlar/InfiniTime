@@ -302,10 +302,10 @@ void WatchFaceAnalog::drawWatchFaceWadokei(){
     sHour = hour;
     sMinute = minute;
 
-    hour_point_trace[0] = CoordinateRelocate(HourLength*.7, hourAngle+90-33);
+    hour_point_trace[0] = CoordinateRelocate(28, hourAngle+90-66); //axis radius minus line stroke
     hour_point_trace[1] = CoordinateRelocate(HourLength, hourAngle+90);
 
-    hour_point[0] = CoordinateRelocate(HourLength*.7, hourAngle+90+33);
+    hour_point[0] = CoordinateRelocate(28, hourAngle+90+66); //axis radius minus line stroke
     hour_point[1] = CoordinateRelocate(HourLength, hourAngle+90);
 
     lv_line_set_points(hour_body, hour_point, 2);
