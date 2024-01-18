@@ -44,11 +44,6 @@ namespace {
                        .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
   }
 
-  lv_point_t CoordinateRelocateTriangle(int16_t radius, int16_t angle, int16_t base_offset) {
-    return lv_point_t {.x = CoordinateXRelocate((radius + base_offset) * static_cast<int32_t>(Sine(angle)) / LV_TRIG_SCALE),
-                       .y = CoordinateYRelocate(radius * static_cast<int32_t>(Cosine(angle)) / LV_TRIG_SCALE)};
-  }
-
   void printKoku(const char* str, uint8_t i, bool big){
     lv_obj_t* koku = lv_label_create(lv_scr_act(), NULL);
     lv_label_set_align(koku, LV_LABEL_ALIGN_CENTER);
@@ -307,11 +302,11 @@ void WatchFaceAnalog::drawWatchFaceWadokei(){
     sHour = hour;
     sMinute = minute;
 
-    hour_point_trace[0] = CoordinateRelocateTriangle(HourLength/4, hourAngle+90, -25);
-    hour_point_trace[1] = CoordinateRelocateTriangle(HourLength, hourAngle+90, 0);
+    hour_point_trace[0] = CoordinateRelocate(HourLength*.7, hourAngle+90-33);
+    hour_point_trace[1] = CoordinateRelocate(HourLength, hourAngle+90);
 
-    hour_point[0] = CoordinateRelocateTriangle(HourLength/4, hourAngle+90, 25);
-    hour_point[1] = CoordinateRelocateTriangle(HourLength, hourAngle+90, 0);
+    hour_point[0] = CoordinateRelocate(HourLength*.7, hourAngle+90+33);
+    hour_point[1] = CoordinateRelocate(HourLength, hourAngle+90);
 
     lv_line_set_points(hour_body, hour_point, 2);
     lv_line_set_points(hour_body_trace, hour_point_trace, 2);
