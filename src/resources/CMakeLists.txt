@@ -5,7 +5,7 @@ message(STATUS "Using ${LV_FONT_CONV} to generate font files")
 
 find_program(LV_IMG_CONV "lv_img_conv.py" NO_CACHE REQUIRED
     HINTS "${CMAKE_CURRENT_SOURCE_DIR}")
-message(STATUS "Using ${LV_IMG_CONV} to generate font files")
+message(STATUS "Using ${LV_IMG_CONV} to generate image files")
 
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
    # FindPython3 module introduces with CMake 3.12

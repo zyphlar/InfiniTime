@@ -32,6 +32,17 @@ WatchFaceDigital::WatchFaceDigital(Controllers::DateTime& dateTimeController,
   sMinute = 99;
   statusIcons.Create();
 
+  lv_obj_t* bg = lv_img_create(lv_scr_act(), nullptr);
+  lv_img_set_src(bg, "F:/images/aor.bin");
+  lv_img_set_auto_size(bg, false);
+  lv_obj_set_size(bg, 240, 240);
+  // lv_img_set_src(bg, image.fileName);
+  lv_img_set_offset_x(bg, 0);
+  lv_img_set_offset_y(bg, 0);
+  // lv_obj_set_style_local_image_recolor_opa(bg, LV_IMG_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+  // lv_obj_set_style_local_image_recolor(bg, LV_IMG_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_CYAN);
+  lv_obj_align(bg, nullptr, LV_ALIGN_CENTER, 0, 0);
+
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_LIME);
   lv_label_set_text_static(notificationIcon, NotificationIcon::GetIcon(false));
